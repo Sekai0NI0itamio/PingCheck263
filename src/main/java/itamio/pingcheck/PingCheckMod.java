@@ -1,8 +1,12 @@
 package itamio.pingcheck;
 
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,12 +24,13 @@ public class PingCheckMod {
             .executes(ctx -> {
                 int ping = -1;
                 if (ctx.getSource().getEntity() instanceof ServerPlayer sp) {
-                    ping = ctx.getSource().getServer().getPlayerList().getPlayer(sp.getUUID()) != null
-                        ? ctx.getSource().getServer().getPlayerList().getPlayer(sp.getUUID()).getPlayerListEntry().getLatency()
-                        : -1;
+                    ServerGamePacketListenerImpl listener = sp.connection;
+                    if (listener != null) {
+                        ping = listener.latency;
+                    }
                 }
                 int finalPing = ping;
-                ctx.getSource().sendSuccess(() -> Component.literal("Your ping: " + finalPing + " ms"), false);
+                ctx.getSource().sendSuccess(() -> Component.literal("Your ping: " + (finalPing < 0 ? "unknown" : finalPing + " ms")), false);
                 return 1;
             }));
     }
