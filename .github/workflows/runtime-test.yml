@@ -1,5 +1,8 @@
 name: runtime-test
-on: {push:, pull_request:, workflow_dispatch:}
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 env:
   java_version: 17
 jobs:
