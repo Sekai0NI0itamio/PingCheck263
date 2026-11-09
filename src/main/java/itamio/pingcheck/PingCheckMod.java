@@ -1,17 +1,16 @@
 package itamio.pingcheck;
 
-import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.PlayerList;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+// PingCheck — /pingcheck shows your latency in milliseconds.
+// 1.20.1 Forge (official mappings): ServerPlayer.connection is the
+// ServerGamePacketListenerImpl; fall back to entry lookup if needed.
 @Mod("pingcheck")
 public class PingCheckMod {
     public PingCheckMod() {
@@ -24,10 +23,7 @@ public class PingCheckMod {
             .executes(ctx -> {
                 int ping = -1;
                 if (ctx.getSource().getEntity() instanceof ServerPlayer sp) {
-                    ServerGamePacketListenerImpl listener = sp.connection;
-                    if (listener != null) {
-                        ping = listener.latency;
-                    }
+                    ping = sp.connection != null ? sp.connection.latencyValue() : -1;
                 }
                 int finalPing = ping;
                 ctx.getSource().sendSuccess(() -> Component.literal("Your ping: " + (finalPing < 0 ? "unknown" : finalPing + " ms")), false);
