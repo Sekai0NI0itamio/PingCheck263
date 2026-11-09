@@ -8,9 +8,8 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-// PingCheck — /pingcheck shows your latency in milliseconds.
-// 1.20.1 Forge (official mappings): ServerPlayer.connection is the
-// ServerGamePacketListenerImpl; fall back to entry lookup if needed.
+// PingCheck — /pingcheck shows your latency (lowest RTT seen by the server).
+// 1.20.1 Forge (official mappings): ServerPlayer.connection.getLatency().
 @Mod("pingcheck")
 public class PingCheckMod {
     public PingCheckMod() {
@@ -22,8 +21,8 @@ public class PingCheckMod {
         event.getDispatcher().register(Commands.literal("pingcheck").requires(s -> s.hasPermission(0))
             .executes(ctx -> {
                 int ping = -1;
-                if (ctx.getSource().getEntity() instanceof ServerPlayer sp) {
-                    ping = sp.connection != null ? sp.connection.latencyValue() : -1;
+                if (ctx.getSource().getEntity() instanceof ServerPlayer sp && sp.connection != null) {
+                    ping = sp.connection.getLatency();
                 }
                 int finalPing = ping;
                 ctx.getSource().sendSuccess(() -> Component.literal("Your ping: " + (finalPing < 0 ? "unknown" : finalPing + " ms")), false);
